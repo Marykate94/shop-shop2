@@ -13,7 +13,7 @@ function ProductItem(item) {
     price,
     quantity
   } = item;
-
+// add state
 
   const state = useSelector((state) => {
     return state;
