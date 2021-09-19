@@ -1,78 +1,67 @@
-import React, { useEffect } from 'react';
-import { useQuery } from '@apollo/client';
-import ProductItem from '../ProductItem';
-import { QUERY_PRODUCTS } from '../../utils/queries';
-import spinner from '../../assets/spinner.gif';
-import { UPDATE_PRODUCTS } from '../../utils/actions';
-import { idbPromise } from '../../utils/helpers';
+import React from "react";
+import { Link } from "react-router-dom";
+import { pluralize } from "../../utils/helpers";
 import { useSelector, useDispatch } from 'react-redux';
+import { ADD_TO_CART, UPDATE_CART_QUANTITY } from '../../utils/actions';
+import { idbPromise } from "../../utils/helpers";
+
+function ProductItem(item) {
+  const {
+    image,
+    name,
+    _id,
+    price,
+    quantity
+  } = item;
 
 
-function ProductList() {
   const state = useSelector((state) => {
     return state;
   });
   const dispatch = useDispatch();
+  const { cart } = state;
 
-  const { currentCategory } = state;
+  const addToCart = () => {
+    // find the cart item with the matching id
+    const itemInCart = cart.find((cartItem) => cartItem._id === _id);
 
-  const { loading, data } = useQuery(QUERY_PRODUCTS);
-
-  useEffect(() => {
-    //if there's data to be stored
-    if (data) {
-      //let's store it in the global state object
+    // if there was a match, call UPDATE with a new purchase quantity
+    if (itemInCart) {
       dispatch({
-        type: UPDATE_PRODUCTS,
-        products: data.products
+        type: UPDATE_CART_QUANTITY,
+        _id: _id,
+        purchaseQuantity: parseInt(itemInCart.purchaseQuantity) + 1
       });
-
-      //but let's also take each product and save it to IndexedDB
-      data.products.forEach((product) => {
-        idbPromise('products', 'put', product);
+      idbPromise('cart', 'put', {
+        ...itemInCart,
+        purchaseQuantity: parseInt(itemInCart.purchaseQuantity) + 1
+      })
+    } else {
+      dispatch({
+        type: ADD_TO_CART,
+        product: { ...item, purchaseQuantity: 1 }
       });
-    } else if (!loading) {
-      //since we are offline, get all data from the products store
-      idbPromise('products', 'get').then((products) => {
-        //use retrieved data to set global state for offline browsing
-        dispatch({
-          type: UPDATE_PRODUCTS,
-          products: products
-        });
-      });
+      idbPromise('cart', 'put', { ...item, purchaseQuantity: 1 });
     }
-  }, [data, loading, dispatch]);
+  };
 
-  function filterProducts() {
-    if (!currentCategory) {
-      return state.products;
-    }
-
-    return state.products.filter(product => product.category._id === currentCategory);
-  }
 
   return (
-    <div className="my-2">
-      <h2>Our Products:</h2>
-      {state.products.length ? (
-        <div className="flex-row">
-          {filterProducts().map((product) => (
-            <ProductItem
-              key={product._id}
-              _id={product._id}
-              image={product.image}
-              name={product.name}
-              price={product.price}
-              quantity={product.quantity}
-            />
-          ))}
-        </div>
-      ) : (
-        <h3>You haven't added any products yet!</h3>
-      )}
-      {loading ? <img src={spinner} alt="loading" /> : null}
+    <div className="card px-1 py-1">
+      <Link to={`/products/${_id}`}>
+        <img
+          alt={name}
+          src={`/images/${image}`}
+        />
+        <p>{name}</p>
+      </Link>
+      <div>
+        <div>{quantity} {pluralize("item", quantity)} in stock</div>
+        <span>${price}</span>
+      </div>
+      <button onClick={addToCart}>Add to cart</button>
     </div>
   );
 }
 
-export default ProductList;
+export default ProductItem;
