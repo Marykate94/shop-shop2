@@ -15,7 +15,7 @@
   <img width="890" alt="Screen Shot 2021-09-19 at 8 52 43 PM" src="https://user-images.githubusercontent.com/79379903/133948688-f5bbc82e-e56e-48d6-a9d4-66a2e79718ef.png">
 
   ## Questions
-  Made by Marykate Smith. Worked on with Jillian Amelung and Greg D'Amato.
+  Made by Marykate Smith. Worked on with Jillian Amelung, Leslie ChinQuee and Greg D'Amato.
 
 
   Find me on GitHub at https://github.com/Marykate94. 
